@@ -6,10 +6,11 @@ const morgan = require('morgan');
 const mongoose = require('mongoose');
 const path = require('path');
 
-const templateRoutes = require('./src/routes/templates');
-const exportRoutes = require('./src/routes/export');
-const assetRoutes = require('./src/routes/assets');
-const errorHandler = require('./src/middleware/errorHandler');
+const templateRoutes  = require('./src/routes/templates');
+const exportRoutes    = require('./src/routes/export');
+const assetRoutes     = require('./src/routes/assets');
+const validateRoutes  = require('./src/routes/validate');
+const errorHandler    = require('./src/middleware/errorHandler');
 
 const app = express();
 const PORT = process.env.PORT || 4000;
@@ -28,13 +29,15 @@ app.use(cors({
 app.use(express.json({ limit: '50mb' }));
 app.use(express.urlencoded({ extended: true, limit: '50mb' }));
 
-// ── Static uploads ───────────────────────────────────────────────────────────
+// ── Static files ─────────────────────────────────────────────────────────────
 app.use('/uploads', express.static(path.join(__dirname, 'uploads')));
+app.use('/outputs', express.static(path.join(__dirname, 'outputs')));
 
 // ── Routes ───────────────────────────────────────────────────────────────────
 app.use('/api/templates', templateRoutes);
-app.use('/api/export', exportRoutes);
-app.use('/api/assets', assetRoutes);
+app.use('/api/export',    exportRoutes);
+app.use('/api/assets',    assetRoutes);
+app.use('/api/validate',  validateRoutes);
 
 // ── Health Check ─────────────────────────────────────────────────────────────
 app.get('/api/health', (req, res) => {

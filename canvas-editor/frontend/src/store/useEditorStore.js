@@ -1,5 +1,6 @@
 import { create } from 'zustand';
 import { v4 as uuid } from '../utils/uuid.js';
+import { validateTemplate } from '../utils/validationUtils.js';
 
 // ── Default page factory ──────────────────────────────────────────────────────
 const createPage = (overrides = {}) => ({
@@ -120,9 +121,17 @@ const useEditorStore = create((set, get) => ({
     allowCustomFonts: true,
   },
 
+  // Validation state
+  validation: {
+    report:      null,    // last ValidationReport
+    isRunning:   false,
+    lastRun:     null,    // ISO timestamp
+    autoValidate: true,   // re-validate on every change
+  },
+
   // UI panels
   ui: {
-    leftPanel: 'layers',      // 'layers' | 'templates' | 'assets'
+    leftPanel: 'layers',      // 'layers' | 'templates' | 'assets' | 'validation'
     rightPanel: 'properties', // 'properties' | 'pages'
     showExportModal: false,
     showTemplatesModal: false,
@@ -379,6 +388,29 @@ const useEditorStore = create((set, get) => ({
   },
 
   setStyleConstraints: (sc) => set({ styleConstraints: sc }),
+
+  // ── Validation ────────────────────────────────────────────────────────────
+  runValidation: () => set((state) => {
+    const template = { pages: state.pages, styleConstraints: state.styleConstraints };
+    const report   = validateTemplate(template);
+    return {
+      validation: {
+        ...state.validation,
+        report,
+        isRunning: false,
+        lastRun:   new Date().toISOString(),
+        autoValidate: state.validation.autoValidate,
+      },
+    };
+  }),
+
+  clearValidation: () => set((state) => ({
+    validation: { ...state.validation, report: null, lastRun: null },
+  })),
+
+  setAutoValidate: (autoValidate) => set((state) => ({
+    validation: { ...state.validation, autoValidate },
+  })),
 }));
 
 export default useEditorStore;
